@@ -1,0 +1,12 @@
+#!/bin/bash
+
+_pwd="$PWD"
+_name="$(basename $_pwd)"
+if [[ "$1" != "" ]]; then _name="$1"; fi
+_go_ver="1.8.4-alpine3.6" #1.9.1-alpine3.6
+if [[ "$2" != "" ]]; then _go_ver="$2"; fi
+_path="/usr/src/$_name"
+
+echo "building '$_name' ...with go:$_go_ver"
+sudo docker run --rm -v "$_pwd":"$_path" -w "$_path" golang:$_go_ver go build -v
+
