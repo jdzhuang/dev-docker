@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 _pwd="$PWD"
 _name="$(basename $_pwd)"
@@ -10,12 +10,12 @@ _path="/go/src/$_name"
 
 _docker="sudo docker run --rm -v "$_pwd":"$_path" -w "$_path" $_img"
 if [[ $(uname -r|grep Microsoft|wc -l) -gt 0 ]]; then 
-	echo "building '$_name' "
+	echo "building '$_name' within Microsoft	"
 	_docker="";
 else
 	echo "building '$_name' ...with go:$_go_ver"
 	echo "$_docker"
 fi
 mkdir -p $_pwd/build
-$_docker go build -v -o "$_path/build/${_name}.bin"
+$_docker go build -v -o "./build/${_name}.bin"
 
