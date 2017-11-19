@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+set -u
+#_tmp_file="/tmp/tmp.$$.docker-clean-containers"
+#trap "rm -f $_tmp_file; echo bye." EXIT
+#_progname=$(basename $0)
+#_progpath=$(cd $(dirname $0);pwd)
+
+_docker_bin="sudo docker"
+test $(uname -r|grep Microsoft|wc -l) -gt 0 && _docker_bin="docker.exe"
+$_docker_bin ps -a| grep "Exited"|awk '{print $1}'|xargs $_docker_bin rm
+

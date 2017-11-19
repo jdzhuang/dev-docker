@@ -1,28 +1,53 @@
 #!/bin/bash
-
+set -e
+set -u
+#_tmp_file="/tmp/tmp.$$.go-build"
+#trap "rm -f $_tmp_file; echo bye." EXIT
+#_progname=$(basename $0)
+#_progpath=$(cd $(dirname $0);pwd)
 _pwd="$PWD"
-_name="$(basename $_pwd)"
-if [[ "$1" != "" ]]; then _name="$1"; fi
-_go_ver="1.8.4" #1.9.1-alpine3.6
-_img="golang:${_go_ver}-alpine3.6"
-if [[ "$2" != "" ]]; then _go_ver="$2"; fi
-_path="/go/src/$_name"
-
-mkdir -p $_pwd/build
+_name="$(test $# -gt 0 && echo $1 || basename $_pwd)"
 _docker_bin="sudo docker"
-if [[ $(uname -r|grep Microsoft|wc -l) -gt 0 ]]; then 
-	echo "building '$_name' within Microsoft	"
-	if [[ $(echo "$_pwd"|grep -E "^/mnt/"|wc -l) -lt 1 ]]; then
-		echo "plz. put your project on /mnt/X/... so that it could be accessed by DOCKER_ON_WINDOWS.">&2
-		exit
+
+func_tag(){
+	tag="$($_docker_bin images|grep $_name|awk '{print $2}' |head -n 1 ||echo '0.0.0')"
+	tag="$(echo $tag|awk -F"-" '{print $1}')"
+	tag="$tag-$(date +'%H.%M.%S')"
+	echo $tag
+}
+
+func_is_wsl(){
+	if [[ $(uname -r|grep Microsoft|wc -l) -gt 0 ]]; then
+		echo "true"
+	else
+		echo "false"
 	fi
-	_docker_bin="docker.exe";
-	_pwd=$(echo "$_pwd"|sed "s#/mnt/\([^/]*\)/\(.*\)#\1:/\2#g")
+}
+
+func_build(){
+	tag=$(func_tag)
+	echo $_docker_bin build ./ --tag "$_name:$tag"
+	$_docker_bin build ./ --tag "$_name:$tag"
+	#$_docker_bin images | grep "<none>"|awk '{print $3}'|xargs $_docker_bin rmi
+}
+
+func_build_on_wsl(){
+	win_path="$(test -d /mnt/c&&echo /mnt/c||echo)"
+	test -n "$win_path" || (echo "/mnt/c is not ready. not on WSL?">&2 && exit -1)
+	target_path=$win_path/tmp/$_name
+	mkdir -p $target_path
+
+	cd .. 
+	cp -R $_name/* $target_path/
+	cd $target_path/
+	func_build
+}
+
+if [[ "true" == "$(func_is_wsl)" ]]; then 
+	echo "building '$_name' within Microsoft"
+	_docker_bin="docker.exe"
+	func_build_on_wsl
 else
-	echo "building '$_name' ...with go:$_go_ver"
-	echo "$_docker"
+	func_build
 fi
-_docker_var="run --rm -v "$_pwd":"$_path" -w "$_path" $_img"
-echo $_docker_bin $_docker_var go build -v -o "./build/${_name}.bin"
-$_docker_bin $_docker_var go build -v -o "./build/${_name}.bin"
 

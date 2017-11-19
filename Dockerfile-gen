@@ -1,0 +1,22 @@
+#!/bin/bash
+set -e
+set -u
+_tmp_file="/tmp/tmp.$$.go-gen-Dockerfile"
+trap "rm -f $_tmp_file; echo bye." EXIT
+_progname=$(basename $0)
+_progpath=$(cd $(dirname $0);pwd)
+
+
+_pwd="$PWD"
+_user_name="$(git config --get user.name)"
+_user_email="$(git config --get user.email)"
+_name="$(test $# -gt 0 && echo $1 || basename $_pwd)"
+
+cat $_progpath/resource/go.Dockerfile.tpl | \
+	sed "s/{NAME}/$_name/g" | \
+	sed "s/{USER}/$_user_name/g" | \
+	sed "s/{EMAIL}/$_user_email/g" > $_tmp_file
+
+cp $_tmp_file ./$_name.Dockerfile
+
+
