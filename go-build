@@ -1,6 +1,5 @@
 #!/bin/bash
-set -e
-set -u
+set -e; set -u
 #_tmp_file="/tmp/tmp.$$.go-build"
 #trap "rm -f $_tmp_file; echo bye." EXIT
 #_progname=$(basename $0)

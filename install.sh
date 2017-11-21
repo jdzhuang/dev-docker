@@ -1,6 +1,5 @@
 #!/bin/bash 
-set -e
-set -u
+set -e; set -u
 _tmp_file="/tmp/tmp.$$.install"
 trap "rm -f $_tmp_file; echo bye." EXIT
 _progname=$(basename $0)
@@ -13,10 +12,9 @@ cd $_progpath
 func_install_binaries(){
 	ls | grep -v "install.sh" > $_tmp_file
 	while read f; do
-		if [[ -f $f && -x $f ]]; then
-			echo "copying.. '$f' to $_destpath/"
-			cp "$f" "$_destpath/"
-		fi
+		test -f $f && test -x $f || continue
+		echo "copying.. '$f' to $_destpath/"
+		cp "$f" "$_destpath/"
 	done < $_tmp_file
 
 	ls resource/*.tpl > $_tmp_file
@@ -40,23 +38,18 @@ func_install_dircolors(){
 
 func_options(){
 	_list="binaries glide_mirrors dircolors"
-	echo "---OPTIONS---"
-	i=0
 	> $_tmp_file
-	for n in $_list; do
+	echo "---OPTIONS---"
+	i=0; for n in $_list; do
 		i=$(($i+1)); echo "func_install_$n">>$_tmp_file
-		echo "$i : install $n"
+		echo "$i : INSTALL $n"
 	done
-	read idx
-	re='^[0-9]+$'
-	if [[ $idx =~ $re && $idx -ge 1 && $idx -le $i ]]; then 
-		line=$(head -n $idx $_tmp_file |tail -n 1 )
-		$line
-		exit 0
-	fi
+	echo -n "option: "; read idx
+	re='^[0-9]+$'; if ! [[ $idx =~ $re && $idx -ge 1 && $idx -le $i ]];then return 1; fi
+	$(head -n $idx $_tmp_file |tail -n 1 ) || return 1
 }
 
 while true; do
-	func_options
+	func_options && break
 done
 
