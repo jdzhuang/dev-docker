@@ -7,10 +7,12 @@ set -e; set -u
 _pwd="$PWD"
 _name="$(test $# -gt 0 && echo $1 || basename $_pwd)"
 _docker_bin="sudo docker"
+_extra=$(shift;echo "$@")
 
 func_tag(){
 	tag="$($_docker_bin images|grep $_name|awk '{print $2}' |head -n 1 ||echo '0.0.0')"
 	tag="$(echo $tag|awk -F"-" '{print $1}')"
+	test -z "$tag" && tag="0.0.1"
 	tag="$tag-$(date +'%H.%M.%S')"
 	echo $tag
 }
@@ -25,9 +27,8 @@ func_is_wsl(){
 
 func_build(){
 	tag=$(func_tag)
-	echo $_docker_bin build ./ --tag "$_name:$tag"
-	$_docker_bin build ./ --tag "$_name:$tag"
-	#$_docker_bin images | grep "<none>"|awk '{print $3}'|xargs $_docker_bin rmi
+	echo $_docker_bin build ./ --tag "$_name:$tag" $_extra
+	$_docker_bin build ./ --tag "$_name:$tag" $_extra
 }
 
 func_build_on_wsl(){
