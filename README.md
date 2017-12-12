@@ -9,9 +9,9 @@ cd dev-docker
 ```
 
 *to gen Dockerfile*
-```bash
 > Support go-project for the moment. Other language support is comming soon.
 
+```bash
 Dockerfile-gen # in go-project directory
 ```
 
