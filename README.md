@@ -1,19 +1,23 @@
-## dev-go
-> go developing-env via docker
+## dev-docker
+> docker developing-env
 
 *to install*
 ```bash
-git clone "https://github.com/jdzhuang/dev-go.git"
-cd dev-go
+git clone "https://github.com/jdzhuang/dev-docker.git"
+cd dev-docker
 ./install.sh
 ```
 
 *to gen Dockerfile*
 ```bash
+> Support go-project for the moment. Other language support is comming soon.
+
 Dockerfile-gen # in go-project directory
 ```
 
-*to build go-project-image*
+*to build project-image*
+> build and automatically tag the image.
+
 ```bash
-go-build # in go-project directory
+docker-build  # in project directory
 ```
